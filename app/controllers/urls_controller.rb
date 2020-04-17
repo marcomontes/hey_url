@@ -3,20 +3,16 @@
 class UrlsController < ApplicationController
   def index
     @url = Url.new
-    @urls = [
-      Url.new(short_url: '123', original_url: 'http://google.com', created_at: Time.now),
-      Url.new(short_url: '456', original_url: 'http://facebook.com', created_at: Time.now),
-      Url.new(short_url: '789', original_url: 'http://yahoo.com', created_at: Time.now)
-    ]
+    @urls = Url.all
   end
 
   def create
-    # create a new URL record
+    Url.create(original_url: params[:url][:original_url])
   end
 
   def show
-    @url = Url.new(short_url: '123', original_url: 'http://google.com', created_at: Time.now)
-    # implement queries
+    @url = Url.where(short_url: params[:url]).last
+
     @daily_clicks = [
       ['1', 13],
       ['2', 2],
@@ -29,22 +25,19 @@ class UrlsController < ApplicationController
       ['9', 15],
       ['10', 5]
     ]
-    @browsers_clicks = [
-      ['IE', 13],
-      ['Firefox', 22],
-      ['Chrome', 17],
-      ['Safari', 7]
-    ]
-    @platform_clicks = [
-      ['Windows', 13],
-      ['macOS', 22],
-      ['Ubuntu', 17],
-      ['Other', 7]
-    ]
+
+    @browsers_clicks = @url.browser_clicks
+    @platform_clicks = @url.platform_clicks
   end
 
   def visit
-    # params[:url]
-    # @url = find url
+    url = Url.where(short_url: params[:url]).last
+    url.increment_counter
+    url.set_browser_data(browser)
+    redirect_to url.original_url
+  end
+
+  def latest
+    Url.last(10)
   end
 end
